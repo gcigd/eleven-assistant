@@ -3,3 +3,37 @@
 [hidden]{display:none!important}
 .header-actions{display:flex;align-items:center;gap:4px}.remember{display:flex;align-items:flex-start;gap:10px;margin:0 0 16px;line-height:1.4}.remember input{width:20px;height:20px;margin:1px 0 0;flex:none}.unlock .remember label{font-weight:600;margin:0}.remember-note{margin:0 0 16px!important}@media(max-width:600px){.header-actions{gap:0}.header-actions .text-button{font-size:12px;padding:8px 5px}}
 .unlock .remember input{padding:0;border:0}
+
+/* Readable touch layout */
+:root{font-size:18px;line-height:1.5;-webkit-text-size-adjust:100%}
+button,input{font-family:inherit}button{touch-action:manipulation}
+.topbar{min-height:76px;height:auto;padding-top:12px;padding-bottom:12px}
+.brand{font-size:21px}.brand small{font-size:14px}.mark{width:42px;height:42px;flex:none}
+.text-button{font-size:16px;min-height:44px;padding:11px 12px}
+main{padding:36px 24px 64px}.eyebrow{font-size:14px}
+h1{font-size:clamp(32px,5vw,44px);line-height:1.15;margin-bottom:16px}
+h2{font-size:24px;line-height:1.25;margin-bottom:18px}
+.lead{font-size:19px;line-height:1.5;margin-bottom:30px}
+.panel{padding:28px}
+.choice{font-size:19px;line-height:1.4;min-height:72px;padding:18px 20px}
+.choice small{font-size:16px;line-height:1.4}.choice .arrow{font-size:26px}
+.back{font-size:17px;min-height:44px;margin-bottom:18px;padding:9px 0}
+.steps{font-size:18px;line-height:1.6;padding-left:27px}.steps li{margin-bottom:18px}.steps li:last-child{margin-bottom:0}
+.notice,.result{font-size:18px;line-height:1.55;padding:18px}.result{margin-top:26px}
+.source{font-size:16px}.actions{gap:12px;margin-top:30px}
+.button{font-size:17px;min-height:52px;padding:16px 20px}
+.case-grid{gap:12px}.case-grid .choice{font-size:17px;min-height:68px;padding:16px}
+footer{font-size:14px;padding-top:20px;padding-bottom:20px}
+.unlock{max-width:510px;margin:4vh auto}.unlock input[type=password]{font-size:18px;min-height:52px;padding:15px}
+.unlock .small{font-size:16px}.unlock .remember input{width:24px;height:24px}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid #9acb71;outline-offset:3px}
+@media(max-width:600px){
+  .topbar{display:grid;grid-template-columns:1fr;gap:10px;padding:14px 18px 10px}
+  .header-actions{display:flex;gap:8px}
+  .header-actions .text-button{flex:1;border-radius:10px;background:rgba(255,255,255,.11);font-size:16px;padding:10px 12px;text-align:center}
+  main{padding:28px 18px 52px}.panel{padding:20px;border-radius:16px}
+  .choice{font-size:19px;padding:18px;min-height:72px}
+  .case-grid{grid-template-columns:1fr}.case-grid .choice{font-size:18px;padding:17px 18px;min-height:70px}
+  .actions{display:grid;grid-template-columns:1fr}.actions .button{width:100%}
+  .unlock{margin:0 auto}footer{padding:20px 18px}
+}
