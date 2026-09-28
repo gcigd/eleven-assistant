@@ -18,6 +18,6 @@ Ejecutar `python3 -m http.server 8000` y abrir `http://localhost:8000/`. Abrir u
 
 ## Actualización de contenido
 
-El contenido fuente permanece fuera de este repositorio. Para cambiarlo, generar de nuevo `content.enc.json` con una frase fuerte, sal e IV aleatorios, PBKDF2-SHA256 (600 000 iteraciones) y AES-256-GCM; después incrementar el nombre `CACHE` en `sw.js`. Nunca subir la frase, el contenido descifrado ni archivos temporales. El archivo `.gitignore` ayuda a detectar errores comunes, pero no sustituye la revisión del commit.
+El contenido fuente permanece fuera de este repositorio. Para cambiarlo, generar de nuevo `content.enc.json` con una frase fuerte, PBKDF2-SHA256 (600 000 iteraciones) y AES-256-GCM. Cada versión requiere un IV aleatorio nuevo. Se puede conservar la sal si se mantiene la misma frase y se desea conservar las llaves recordadas; al rotar la frase, crear también una sal aleatoria nueva; después incrementar el nombre `CACHE` en `sw.js`. Nunca subir la frase, el contenido descifrado ni archivos temporales. El archivo `.gitignore` ayuda a detectar errores comunes, pero no sustituye la revisión del commit.
 
 La versión anterior publicada y los commits antiguos pueden permanecer en cachés o vistas directas de GitHub; cifrar esta versión no elimina copias anteriores.
