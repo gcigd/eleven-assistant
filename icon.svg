@@ -1,1 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="108" fill="#1558ee"/><path d="M367 153c-31-26-68-39-109-39-84 0-148 62-148 142s64 142 148 142c41 0 78-13 109-39l-35-44c-21 17-45 25-72 25-53 0-91-35-91-84s38-84 91-84c27 0 51 8 72 25z" fill="#ffffff"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Tienda">
+  <rect width="512" height="512" rx="108" fill="#1558ee"/>
+  <path d="M145 155h222l35 76H110z" fill="#fff"/>
+  <path d="M110 231h292v18c0 21-26 33-43 18-17 17-45 17-62 0-17 17-45 17-62 0-17 17-45 17-62 0-17 15-43 3-43-18z" fill="#fff"/>
+  <path d="M145 286v96h222v-96" fill="#fff"/>
+  <rect x="174" y="303" width="85" height="56" rx="7" fill="#1558ee"/>
+  <path d="M291 382v-79h47v79" fill="#1558ee"/>
+</svg>

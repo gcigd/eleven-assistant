@@ -51,16 +51,11 @@ button { touch-action: manipulation; }
 }
 .brand small { display: block; margin-top: 3px; color: var(--muted); font-size: 14px; font-weight: 500; }
 .mark {
-  display: grid;
-  place-items: center;
+  display: block;
   flex: none;
   width: 44px;
   height: 44px;
   border-radius: 14px;
-  background: var(--blue);
-  color: #fff;
-  font-size: 23px;
-  font-weight: 800;
 }
 .header-actions { display: flex; align-items: center; gap: 8px; }
 .text-button {
