@@ -1,4 +1,4 @@
-const CACHE = 'guia-caja-v0.2.9';
+const CACHE = 'guia-caja-v0.2.10';
 const ASSETS = ['./','./index.html','./styles.css','./content.enc.json','./app.js','./manifest.webmanifest','./icon.svg','./icon-192.png','./icon-512.png'];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS)).then(() => self.skipWaiting()));
