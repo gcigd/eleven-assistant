@@ -114,6 +114,16 @@
   }
   function result(id, item) {
     root.innerHTML = `<button class="back" type="button" data-back>← Volver</button><p class="eyebrow">${escape(item.stage)}${id.startsWith('case:') ? ` · Caso ${escape(id.slice(5))}` : ''}</p><h1>${escape(item.title)}</h1><p class="lead">${escape(item.summary || 'Sigue estos pasos en orden y comprueba el resultado.')}</p><div class="panel"><h2>Qué hacer</h2><ol class="steps">${item.steps.map(step => `<li>${formattedStep(step)}</li>`).join('')}</ol>${item.warning ? `<div class="notice danger"><strong>Atención</strong><br>${escape(item.warning)}</div>` : ''}<div class="result"><strong>Resultado esperado</strong>${escape(item.result)}</div></div><div class="actions"><button class="button" type="button" data-go="home">Empezar de nuevo</button><button class="button secondary" type="button" data-go="index">Ver todos los casos</button></div>`;
+    if (item.next && valid(item.next[1])) {
+      const action = document.createElement('button');
+      action.className = 'button';
+      action.type = 'button';
+      action.dataset.go = item.next[1];
+      action.textContent = item.next[0];
+      const actions = root.querySelector('.actions');
+      actions.firstElementChild.classList.add('secondary');
+      actions.prepend(action);
+    }
   }
   function render() {
     const id = route();
