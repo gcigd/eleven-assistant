@@ -109,8 +109,11 @@
   function button(label, id, hint='') {
     return `<button class="choice" type="button" data-go="${escape(id)}"><span>${escape(label)}${hint ? `<small>${escape(hint)}</small>` : ''}</span><span class="arrow" aria-hidden="true">›</span></button>`;
   }
+  function formattedStep(step) {
+    return escape(step).replace(/\b(F7|F8)\b/g, '<strong>$1</strong>').replace(/«([^»]+)»/g, '<strong class="entry-text">«$1»</strong>');
+  }
   function result(id, item) {
-    root.innerHTML = `<button class="back" type="button" data-back>← Volver</button><p class="eyebrow">${escape(item.stage)}${id.startsWith('case:') ? ` · Caso ${escape(id.slice(5))}` : ''}</p><h1>${escape(item.title)}</h1><p class="lead">Sigue estos pasos en el sistema de caja y comprueba el resultado.</p><div class="panel"><h2>Qué hacer</h2><ol class="steps">${item.steps.map(step => `<li>${escape(step)}</li>`).join('')}</ol>${item.warning ? `<div class="notice danger"><strong>Atención</strong><br>${escape(item.warning)}</div>` : ''}<div class="result"><strong>Resultado esperado</strong>${escape(item.result)}</div></div><div class="actions"><button class="button" type="button" data-go="home">Empezar de nuevo</button><button class="button secondary" type="button" data-go="index">Ver todos los casos</button></div>`;
+    root.innerHTML = `<button class="back" type="button" data-back>← Volver</button><p class="eyebrow">${escape(item.stage)}${id.startsWith('case:') ? ` · Caso ${escape(id.slice(5))}` : ''}</p><h1>${escape(item.title)}</h1><p class="lead">${escape(item.summary || 'Sigue estos pasos en orden y comprueba el resultado.')}</p><div class="panel"><h2>Qué hacer</h2><ol class="steps">${item.steps.map(step => `<li>${formattedStep(step)}</li>`).join('')}</ol>${item.warning ? `<div class="notice danger"><strong>Atención</strong><br>${escape(item.warning)}</div>` : ''}<div class="result"><strong>Resultado esperado</strong>${escape(item.result)}</div></div><div class="actions"><button class="button" type="button" data-go="home">Empezar de nuevo</button><button class="button secondary" type="button" data-go="index">Ver todos los casos</button></div>`;
   }
   function render() {
     const id = route();
@@ -120,7 +123,7 @@
       result(id, id.startsWith('case:') ? CASES[id.slice(5)] : GUIDES[id.slice(6)]);
     } else {
       const node = FLOW[id];
-      root.innerHTML = `${id === 'home' ? '' : '<button class="back" type="button" data-back>← Volver</button>'}<p class="eyebrow">Guía de caja</p><h1>${escape(node.title)}</h1>${node.description ? `<p class="lead">${escape(node.description)}</p>` : '<p class="lead">Selecciona la situación que corresponde.</p>'}<div class="choice-list">${node.choices.map(([label,next]) => button(label,next)).join('')}</div>${id === 'home' ? '<p class="source">Esta guía orienta; registra las operaciones en el sistema de caja.</p>' : ''}`;
+      root.innerHTML = `${id === 'home' ? '' : '<button class="back" type="button" data-back>← Volver</button>'}<p class="eyebrow">Guía de caja</p><h1>${escape(node.title)}</h1>${node.description ? `<p class="lead">${escape(node.description)}</p>` : '<p class="lead">Selecciona la situación que corresponde.</p>'}<div class="choice-list">${node.choices.map(([label,next,hint]) => button(label,next,hint)).join('')}</div>${id === 'home' ? '<p class="source">Esta guía orienta; registra las operaciones en el sistema de caja.</p>' : ''}`;
     }
     document.title = (id === 'home' ? 'Guía de caja' : `${root.querySelector('h1').textContent} · Guía de caja`);
     root.focus({preventScroll:true});
