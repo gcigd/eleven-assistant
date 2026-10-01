@@ -145,5 +145,28 @@
   addEventListener('popstate', () => { if (FLOW) render(); });
   addEventListener('hashchange', () => { if (FLOW) render(); });
   showUnlock();
-  if ('serviceWorker' in navigator) addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
+  if ('serviceWorker' in navigator) {
+    let refreshing = false;
+    let registration;
+    const hadController = Boolean(navigator.serviceWorker.controller);
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (hadController && !refreshing) {
+        refreshing = true;
+        location.reload();
+      }
+    });
+    const checkForUpdate = () => {
+      if (registration && navigator.onLine) registration.update().catch(() => {});
+    };
+    addEventListener('load', async () => {
+      try {
+        registration = await navigator.serviceWorker.register('./sw.js', {updateViaCache:'none'});
+        checkForUpdate();
+      } catch (_) { /* Offline access still uses the current page. */ }
+    });
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) checkForUpdate();
+    });
+    addEventListener('online', checkForUpdate);
+  }
 })();
