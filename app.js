@@ -5,6 +5,7 @@
   let lessonState;
   const PROGRESS_KEY = 'cash-guide-learning-v2';
   const rememberButton = document.getElementById('forget-device');
+  const deviceActions = document.getElementById('device-actions');
   const escape = value => String(value).replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
   const valid = id => Boolean(FLOW) && (id === 'index' || id === 'learn' || Boolean(FLOW[id]) || (id.startsWith('case:') && Boolean(CASES[id.slice(5)])) || (id.startsWith('guide:') && Boolean(GUIDES[id.slice(6)])) || (id.startsWith('learn:') && Boolean(LESSONS?.items[id.slice(6)])));
   const progress = () => {
@@ -59,13 +60,15 @@
   function openGuide(data, remembered) {
     CASES = data.CASES; GUIDES = data.GUIDES; FLOW = data.FLOW; LESSONS = data.LESSONS;
     document.getElementById('all-cases').hidden = false;
+    deviceActions.hidden = false;
     rememberButton.hidden = !remembered;
     render();
   }
   function showUnlock() {
     document.getElementById('all-cases').hidden = true;
+    deviceActions.hidden = true;
     rememberButton.hidden = true;
-    root.innerHTML = '<p class="eyebrow">Acceso local</p><h1>Desbloquear guía</h1><p class="lead">Introduce la frase de acceso para consultar los casos. Después de cargar la guía por completo, podrás usarla sin internet.</p><form id="unlock-form" class="panel unlock"><label for="passphrase">Frase de acceso</label><input id="passphrase" type="password" autocomplete="off" autocapitalize="none" spellcheck="false" required><div class="remember"><input id="remember" type="checkbox"><label for="remember">Recordar en este dispositivo</label></div><p class="small remember-note">Si lo activas, quien tenga acceso a este dispositivo podrá abrir la guía. Puedes borrar la llave con «Olvidar dispositivo».</p><button class="button" type="submit">Desbloquear</button><p id="unlock-error" class="error" role="alert" aria-live="polite"></p></form>';
+    root.innerHTML = '<p class="eyebrow">Acceso local</p><h1>Desbloquear guía</h1><p class="lead">Introduce la frase de acceso para consultar los casos. Después de cargar la guía por completo, podrás usarla sin internet.</p><form id="unlock-form" class="panel unlock"><label for="passphrase">Frase de acceso</label><input id="passphrase" type="password" autocomplete="off" autocapitalize="none" spellcheck="false" required><div class="remember"><input id="remember" type="checkbox"><label for="remember">Recordar en este dispositivo</label></div><p class="small remember-note">Si lo activas, quien tenga acceso a este dispositivo podrá abrir la guía. Puedes borrar la llave desde el pie de la guía.</p><button class="button" type="submit">Desbloquear</button><p id="unlock-error" class="error" role="alert" aria-live="polite"></p></form>';
     document.getElementById('unlock-form').addEventListener('submit', async event => {
       event.preventDefault();
       const input = document.getElementById('passphrase');
@@ -126,8 +129,13 @@
   function formattedStep(step) {
     return escape(step).replace(/\b(F7|F8)\b/g, '<strong>$1</strong>').replace(/«([^»]+)»/g, '<strong class="entry-text">«$1»</strong>');
   }
+  const stepKinds = {
+    system: ['🖥️','En Eleventa'],
+    physical: ['🤲','En el local'],
+    check: ['🔎','Comprobar y decidir']
+  };
   function result(id, item) {
-    root.innerHTML = `<button class="back" type="button" data-back>← Volver</button><p class="eyebrow">${escape(item.stage)}${id.startsWith('case:') ? ` · Caso ${escape(id.slice(5))}` : ''}</p><h1>${escape(item.title)}</h1><p class="lead">${escape(item.summary || 'Sigue estos pasos en orden y comprueba el resultado.')}</p><div class="panel"><h2>Qué hacer</h2><ol class="steps">${item.steps.map(step => `<li>${formattedStep(step)}</li>`).join('')}</ol>${item.warning ? `<div class="notice danger"><strong>Atención</strong><br>${escape(item.warning)}</div>` : ''}<div class="result"><strong>Resultado esperado</strong>${escape(item.result)}</div></div><div class="actions"><button class="button" type="button" data-go="home">Empezar de nuevo</button><button class="button secondary" type="button" data-go="index">Ver todos los casos</button></div>`;
+    root.innerHTML = `<button class="back" type="button" data-back>← Volver</button><p class="eyebrow">${escape(item.stage)}${id.startsWith('case:') ? ` · Caso ${escape(id.slice(5))}` : ''}</p><h1>${escape(item.title)}</h1><p class="lead">${escape(item.summary || 'Sigue estos pasos en orden y comprueba el resultado.')}</p><div class="panel"><h2>Qué hacer</h2><ol class="steps">${item.steps.map((step,i) => { const type=item.stepTypes?.[i]; const kind=stepKinds[type]; return `<li class="step--${kind?type:'legacy'}">${kind?`<span class="step-label"><span aria-hidden="true">${kind[0]}</span> ${kind[1]}</span>`:''}<div class="step-body">${formattedStep(step)}</div></li>`; }).join('')}</ol>${item.warning ? `<div class="notice danger"><strong>Atención</strong><br>${escape(item.warning)}</div>` : ''}<div class="result"><strong>Resultado esperado</strong>${escape(item.result)}</div></div><div class="actions"><button class="button" type="button" data-go="home">Empezar de nuevo</button><button class="button secondary" type="button" data-go="index">Ver todos los casos</button></div>`;
     if (item.next && valid(item.next[1])) {
       const action = document.createElement('button');
       action.className = 'button';
@@ -159,7 +167,7 @@
     return '';
   }
   function renderLearnList() {
-    root.innerHTML = `<button class="back" type="button" data-back>← Volver</button><p class="eyebrow">Capacitación</p><h1>Entender el efectivo</h1><p class="lead">Seis lecciones breves para explicar qué ocurrió con el dinero antes de elegir una operación en Eleventa. Puedes volver a la guía en cualquier momento.</p><div class="lesson-list">${Object.entries(LESSONS.items).map(([id,item])=>button(`${id}. ${item.title}`,`learn:${id}`,lessonProgress(id).status)).join('')}</div><p class="source">El avance se guarda solo en este dispositivo, no por persona. «Comprendido» es una autoevaluación: debes poder explicar la respuesta con tus palabras.</p><button class="back reset-progress" type="button" data-reset-progress>Borrar avance de este dispositivo</button>`;
+    root.innerHTML = `<button class="back" type="button" data-back>← Volver</button><p class="eyebrow">Capacitación</p><h1>Entender el efectivo</h1><p class="lead">Seis lecciones breves para explicar qué ocurrió con el dinero antes de elegir una operación en Eleventa. Puedes volver a la guía en cualquier momento.</p><div class="lesson-list">${Object.entries(LESSONS.items).map(([id,item])=>button(`${id}. ${item.title}`,`learn:${id}`,lessonProgress(id).status)).join('')}</div><p class="source">El avance se guarda solo en este dispositivo, no por persona. «Comprendido» es una autoevaluación: debes poder explicar la respuesta con tus palabras.</p>`;
   }
   function renderLesson(id) {
     const item = LESSONS.items[id];
@@ -176,7 +184,7 @@
     const options = scenario?.options.map((option,n)=>`<button class="answer${answered && n===lessonState.selected ? (correct?' is-correct':' is-wrong') : ''}" type="button" data-answer="${n}" ${correct?'disabled':''}>${escape(option)}</button>`).join('') || '';
     const feedback = answered ? `<div class="answer-feedback ${correct?'good':'try-again'}" role="status"><strong>${correct?'Así es.':'Revisa la situación.'}</strong> ${escape(scenario.feedback)}</div>${correct?`<button class="button" type="button" data-next-question>${index+1===item.scenarios.length?'Terminar ejercicios':'Siguiente ejercicio'}</button>`:'<p class="source">Elige otra respuesta para continuar.</p>'}` : '';
     const exercise = scenario ? `<div class="exercise" id="exercise"><p class="eyebrow">Ejercicio ${index+1} de ${item.scenarios.length}</p><h2>${escape(scenario.question)}</h2><div class="answer-list">${options}</div>${feedback}</div>` : `<div class="exercise" id="exercise"><p class="eyebrow">Ejercicios terminados</p><h2>Explícalo con tus palabras</h2><p>${escape(item.reflection)}</p><p class="source">El sistema no puede comprobar una explicación verbal. Marca «Comprendido» solo cuando puedas explicarlo sin mirar la respuesta.</p>${saved.status==='Comprendido'?'<p class="answer-feedback good">Marcaste esta lección como comprendida.</p>':'<button class="button" type="button" data-understood>Ya puedo explicarlo</button>'}<button class="button secondary" type="button" data-repeat>Repetir ejercicios</button></div>`;
-    root.innerHTML = `<button class="back" type="button" data-back>← Volver</button><p class="eyebrow">Capacitación · Lección ${escape(id)} de 6 · ${escape(saved.status)}</p><h1>${escape(item.title)}</h1><p class="lead">${escape(item.idea)}</p><div class="panel lesson-concept"><h2>La idea</h2><p>${escape(item.concept)}</p></div><p class="lesson-example">${escape(item.example)}</p>${learningVisual(item)}${practice || exercise}<div class="actions"><button class="button secondary" type="button" data-go="learn">Todas las lecciones</button>${Number(id)<6?`<button class="button secondary" type="button" data-go="learn:${Number(id)+1}">Siguiente lección</button>`:'<button class="button secondary" type="button" data-go="home">Ir a la guía</button>'}</div>`;
+    root.innerHTML = `<button class="back" type="button" data-back>← Volver</button><p class="eyebrow">Capacitación · Lección ${escape(id)} de 6 · ${escape(saved.status)}</p><h1>${escape(item.title)}</h1><p class="lead">${escape(item.idea)}</p><div class="panel lesson-concept"><h2>La idea</h2><p>${escape(item.concept)}</p></div><p class="lesson-example">${escape(item.example)}</p>${learningVisual(item)}${practice || exercise}<div class="actions">${Number(id)<6?`<button class="button" type="button" data-go="learn:${Number(id)+1}">Siguiente lección</button>`:'<button class="button" type="button" data-go="home">Ir a la guía</button>'}<button class="button secondary" type="button" data-go="learn">Todas las lecciones</button></div>`;
   }
   function render() {
     const id = route();
@@ -231,16 +239,18 @@
     } else if (target.hasAttribute('data-repeat') && route().startsWith('learn:')) {
       lessonState.index = 0; lessonState.selected = null; renderLesson(route().slice(6));
       root.querySelector('#exercise')?.scrollIntoView({block:'start'});
-    } else if (target.hasAttribute('data-reset-progress') && route()==='learn') {
-      if (window.confirm('¿Borrar el avance de capacitación guardado en este dispositivo?')) {
+    } else if (target.hasAttribute('data-reset-progress') && FLOW) {
+      if (window.confirm('¿Borrar el avance de las seis lecciones en este dispositivo? La guía seguirá desbloqueada.')) {
         try { localStorage.removeItem(PROGRESS_KEY); } catch (_) { /* Storage may be unavailable. */ }
-        renderLearnList();
+        lessonState = undefined;
+        render();
       }
     } else if (target.hasAttribute('data-back')) back();
     else navigate(target.dataset.go);
   });
   document.getElementById('all-cases').addEventListener('click', () => { if (FLOW) navigate('index'); });
   rememberButton.addEventListener('click', async () => {
+    if (!window.confirm('¿Olvidar este dispositivo? Se borrarán la llave guardada y el avance de las lecciones. Necesitarás la frase de acceso para volver a abrir la guía.')) return;
     try { await savedKey('delete'); } catch (_) { return; }
     try { localStorage.removeItem(PROGRESS_KEY); } catch (_) { /* Storage may be unavailable. */ }
     CASES = GUIDES = FLOW = LESSONS = undefined;

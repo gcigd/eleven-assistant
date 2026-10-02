@@ -16,10 +16,10 @@
   <div class="shell">
     <header class="topbar">
       <button class="brand" data-go="home" aria-label="Ir al inicio"><img class="mark" src="./icon.svg" alt=""><span>Caja <small>Guía de decisiones</small></span></button>
-      <div class="header-actions"><button id="forget-device" class="text-button" type="button" hidden>Olvidar dispositivo</button><button id="all-cases" class="text-button" type="button">Ver casos</button></div>
+      <div class="header-actions"><button id="all-cases" class="text-button" type="button">Ver casos</button></div>
     </header>
     <main id="app" tabindex="-1"></main>
-    <footer><span>Guía cifrada v0.3.4 · 2 oct 2026</span><span>La guía no registra operaciones.</span></footer>
+    <footer><div class="footer-meta"><span>Guía cifrada v0.4.0 · 2 oct 2026</span><span>La guía no registra operaciones.</span></div><div id="device-actions" class="device-actions" hidden><h2>Datos de este dispositivo</h2><div class="device-buttons"><button id="reset-progress" class="danger-button" type="button" data-reset-progress>Borrar avance de lecciones</button><button id="forget-device" class="danger-button" type="button" hidden>Olvidar este dispositivo</button></div></div></footer>
   </div>
   <script src="./app.js"></script>
 </body>

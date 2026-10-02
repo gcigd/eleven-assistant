@@ -2,9 +2,11 @@
 
 PWA estática con contenido cifrado para consulta sin conexión. El navegador descarga la interfaz y `content.enc.json`; solo muestra la guía después de introducir la frase de acceso. La frase no se incluye en el repositorio ni se conserva en almacenamiento local.
 
-La opción «Recordar en este dispositivo» guarda en IndexedDB una llave de descifrado no exportable, nunca la frase. Viene desactivada. «Olvidar dispositivo» borra la llave local y bloquea la guía. Al cambiar la sal del contenido cifrado, la llave guardada deja de servir y se solicita de nuevo la frase. El almacenamiento puede eliminarse por el navegador; entonces se deberá introducir la frase otra vez.
+La opción «Recordar en este dispositivo» guarda en IndexedDB una llave de descifrado no exportable, nunca la frase. Viene desactivada. «Olvidar este dispositivo» pide confirmación, borra la llave local y el avance, y bloquea la guía. Al cambiar la sal del contenido cifrado, la llave guardada deja de servir y se solicita de nuevo la frase. El almacenamiento puede eliminarse por el navegador; entonces se deberá introducir la frase otra vez.
 
-La sección «Entender el efectivo» incluye seis lecciones y ejercicios en el mismo contenido cifrado. El avance se guarda solamente en el almacenamiento local del dispositivo, no por persona; «Comprendido» es una autoevaluación después de completar los escenarios y explicar la idea en voz alta. «Borrar avance» reinicia esos estados. «Olvidar dispositivo» elimina la llave de acceso y el avance local.
+La sección «Entender el efectivo» incluye seis lecciones y ejercicios en el mismo contenido cifrado. El avance se guarda solamente en el almacenamiento local del dispositivo, no por persona; «Comprendido» es una autoevaluación después de completar los escenarios y explicar la idea en voz alta. En el pie, «Borrar avance de lecciones» pide confirmación y reinicia solo esos estados.
+
+Cada ficha del contenido cifrado conserva `steps` como lista de textos y agrega `stepTypes` en el mismo orden (`system`, `physical` o `check`). Esta estructura permite que una versión anterior de la PWA lea el contenido durante una actualización. La interfaz nueva presenta «En Eleventa», «En el local» y «Comprobar y decidir» con etiqueta, icono y color. Cuando una instrucción cruza de un tipo a otro, se divide en pasos consecutivos. La documentación privada del proyecto conserva las razones y las reglas de conteo físico.
 
 ## Publicación y acceso
 
@@ -12,7 +14,7 @@ Este repositorio y cualquier GitHub Pages asociado pueden ser públicos. El cifr
 
 Recordar la llave permite abrir la guía a cualquiera que tenga acceso al dispositivo o ejecute código en este origen. La llave no exportable evita extraerla mediante la API Web Crypto, pero no impide usarla en este navegador. Utilizar esta opción solo en dispositivos confiables y protegidos por bloqueo de pantalla. Safari y la PWA instalada pueden tener almacenamiento separado.
 
-Antes de volver a publicar, verificar que GitHub Pages siga despublicado hasta completar pruebas y revisar cualquier historial o copia anterior que haya contenido datos sin cifrar. `noindex` no es una medida de control de acceso.
+Antes de publicar, revisar el diff y cualquier historial o copia anterior que haya contenido datos sin cifrar. `noindex` no es una medida de control de acceso.
 
 ## Prueba local
 
