@@ -160,18 +160,7 @@ a, .source a { color: #164bb9; }
 .fund-card summary small { display: block; margin-top: 8px; color: var(--muted); font-size: 16px; font-weight: 500; }
 .fund-card p { margin: 14px 0 0; font-size: 16px; }
 .fund-name { display: inline-flex; align-items: center; gap: 8px; }
-.fund-symbol { position: relative; display: inline-block; flex: none; width: 48px; height: 42px; border: 3px solid #275caa; border-radius: 7px; background: #e8f0ff; vertical-align: middle; }
-.fund-symbol--cash { border-top: 0; border-radius: 2px 2px 8px 8px; background: #e8f0ff; }
-.fund-symbol--cash::before { content: ''; position: absolute; top: -3px; left: -5px; width: 52px; height: 5px; border-radius: 4px; background: #275caa; }
-.fund-symbol--cash span { position: absolute; bottom: 8px; left: 16px; width: 10px; height: 10px; border-radius: 50%; background: #275caa; }
-.fund-symbol--vault { background: #eaf4f3; border-color: #316963; }
-.fund-symbol--vault::before { content: ''; position: absolute; inset: 7px 10px; border: 2px solid #316963; border-radius: 50%; }
-.fund-symbol--vault span { position: absolute; top: 17px; left: 16px; width: 10px; height: 3px; background: #316963; }
-.fund-symbol--fund { height: 36px; margin-top: 4px; border-color: #855a33; background: #fff0de; }
-.fund-symbol--fund::before { content: ''; position: absolute; top: 2px; left: 8px; width: 25px; height: 25px; border-right: 2px solid #855a33; border-bottom: 2px solid #855a33; transform: rotate(45deg); }
-.fund-symbol--reserve { border-color: #765b90; background: #f2eefa; border-radius: 10px 10px 8px 8px; }
-.fund-symbol--reserve::before { content: ''; position: absolute; top: -8px; left: -6px; width: 54px; height: 8px; border-radius: 5px; background: #765b90; }
-.fund-symbol--reserve span { position: absolute; inset: 10px 15px; border-radius: 50%; border: 2px solid #765b90; }
+.fund-symbol { display: inline-grid; place-items: center; flex: none; width: 44px; height: 44px; font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif; font-size: 36px; font-weight: 400; line-height: 1; }
 .fund-card summary .fund-name { display: flex; align-items: center; font-size: 18px; }
 .fund-card summary { list-style: none; }
 .fund-card summary::-webkit-details-marker { display: none; }
@@ -191,12 +180,13 @@ a, .source a { color: #164bb9; }
 .route-card summary::-webkit-details-marker, .inspect-card summary::-webkit-details-marker { display: none; }
 .route-card summary { display: grid; grid-template-columns: minmax(0,1fr) 24px minmax(0,1fr) 24px; align-items: center; gap: 6px; }
 .route-card summary .fund-name { min-width: 0; flex-direction: column; align-items: flex-start; font-size: 15px; line-height: 1.25; overflow-wrap: anywhere; }
+.route-card summary .fund-symbol { width: 40px; height: 40px; font-size: 32px; }
 .route-card summary > span:nth-child(2) { color: var(--blue); font-size: 23px; text-align: center; }
 .route-card summary::after { float: none; margin-left: 0; justify-self: end; }
 .route-card p, .inspect-card p { margin: 12px 0 0; color: var(--muted); }
 .meaning-card .money-route { grid-template-columns: minmax(0,1fr) 25px minmax(0,1fr); gap: 3px; }
 .meaning-card .route-end { padding: 8px; min-height: 100px; font-size: 14px; }
-.meaning-card .fund-symbol { transform: scale(.8); transform-origin: left center; margin-right: -6px; }
+.meaning-card .fund-symbol { width: 38px; height: 38px; font-size: 30px; }
 .meaning-card .route-middle > span { font-size: 24px; }
 .meaning-card .route-motive { font-size: 15px; }
 .meaning-card > strong { margin-top: 16px; }

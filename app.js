@@ -145,7 +145,8 @@
       root.querySelector('.actions').before(why);
     }
   }
-  const vessel = key => `<span class="fund-name"><span class="fund-symbol fund-symbol--${escape(key)}" aria-hidden="true"><span></span></span><span>${escape(LESSONS.funds[key].name)}</span></span>`;
+  const fundEmoji = { cash: '💵', vault: '🔒', fund: '🧾', reserve: '💰' };
+  const vessel = key => `<span class="fund-name"><span class="fund-symbol" aria-hidden="true">${fundEmoji[key] || '💵'}</span><span>${escape(LESSONS.funds[key].name)}</span></span>`;
   const routeVisual = (from,to,amount,motive) => `<div class="money-route"><div class="route-end"><small>SALE DE</small>${LESSONS.funds[from]?vessel(from):`<span>${escape(LESSONS.people[from])}</span>`}</div><div class="route-middle"><span aria-label="hacia">→</span></div><div class="route-end"><small>LLEGA A</small>${LESSONS.funds[to]?vessel(to):`<span>${escape(LESSONS.people[to])}</span>`}</div></div>${amount?`<p class="route-amount">Importe: ${escape(amount)}</p>`:''}${motive?`<p class="route-motive">${escape(motive)}</p>`:''}`;
   function learningVisual(item) {
     const v = item.visual;
