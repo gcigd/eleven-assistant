@@ -211,7 +211,7 @@ a, .source a { color: #164bb9; }
 .meaning-card { padding: 20px; border: 1px solid var(--line); border-radius: 15px; background: #fff; }
 .meaning-card strong { display: block; color: #164bb9; font-size: 20px; }
 .meaning-card p { margin: 10px 0; }
-.meaning-card span { display: inline-block; padding: 5px 10px; border-radius: 8px; background: #e0ebff; font-weight: 750; }
+.meaning-card > span { display: inline-block; padding: 5px 10px; border-radius: 8px; background: #e0ebff; font-weight: 750; }
 .cycle-list, .decision-list { display: grid; gap: 12px; }
 .cycle-stage, .decision-stage { display: flex; align-items: flex-start; gap: 14px; padding: 16px; border: 1px solid var(--line); border-radius: 14px; background: #fff; }
 .cycle-stage p, .decision-stage p { margin: 5px 0 0; }
@@ -256,6 +256,8 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid 
   .case-grid .choice { min-height: 72px; padding: 17px 18px; font-size: 18px; }
   .fund-grid, .meaning-grid { grid-template-columns: 1fr; }
   .learning-visual, .exercise { padding: 18px; }
+  .meaning-card { padding: 14px; }
+  .meaning-card .money-route { grid-template-columns: minmax(0,1fr) 28px minmax(0,1fr); gap: 6px; }
   .route-end { min-height: 98px; padding: 9px; font-size: 15px; }
   .money-route { grid-template-columns: minmax(0,1fr) 32px minmax(0,1fr); gap: 5px; }
   .cycle-result { grid-template-columns: 1fr; }
