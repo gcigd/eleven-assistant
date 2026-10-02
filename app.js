@@ -123,8 +123,8 @@
     if (history.state && history.state.fromApp) history.back();
     else navigate('home');
   }
-  function button(label, id, hint='') {
-    return `<button class="choice" type="button" data-go="${escape(id)}"><span>${escape(label)}${hint ? `<small>${escape(hint)}</small>` : ''}</span><span class="arrow" aria-hidden="true">›</span></button>`;
+  function button(label, id, hint='', optionNumber=null) {
+    return `<button class="choice" type="button" data-go="${escape(id)}"><span>${optionNumber ? `<span class="choice-kicker">Opción ${optionNumber}</span>` : ''}${escape(label)}${hint ? `<small>${escape(hint)}</small>` : ''}</span><span class="arrow" aria-hidden="true">›</span></button>`;
   }
   function formattedStep(step) {
     return escape(step).replace(/\b(F7|F8)\b/g, '<strong>$1</strong>').replace(/«([^»]+)»/g, '<strong class="entry-text">«$1»</strong>');
@@ -198,7 +198,7 @@
       result(id, id.startsWith('case:') ? CASES[id.slice(5)] : GUIDES[id.slice(6)]);
     } else {
       const node = FLOW[id];
-      root.innerHTML = `${id === 'home' ? '' : '<button class="back" type="button" data-back>← Volver</button>'}<p class="eyebrow">Guía de caja</p><h1>${escape(node.title)}</h1>${node.description ? `<p class="lead">${escape(node.description)}</p>` : '<p class="lead">Selecciona la situación que corresponde.</p>'}<div class="choice-list">${node.choices.map(([label,next,hint]) => button(label,next,hint)).join('')}</div>${id === 'home' ? `<div class="learning-entry"><p class="eyebrow">Aprender</p>${button('Entender el efectivo','learn','Lecciones breves para comprender los fondos y movimientos')}</div><p class="source">Esta guía orienta; registra las operaciones en el sistema de caja.</p>` : ''}`;
+      root.innerHTML = `${id === 'home' ? '' : '<button class="back" type="button" data-back>← Volver</button>'}<p class="eyebrow">Guía de caja</p><h1>${escape(node.title)}</h1>${node.description ? `<p class="lead">${escape(node.description)}</p>` : '<p class="lead">Selecciona la situación que corresponde.</p>'}<div class="choice-list">${node.choices.map(([label,next,hint],index) => button(label,next,hint,index+1)).join('')}</div>${id === 'home' ? `<div class="learning-entry"><p class="eyebrow">Aprender</p>${button('Entender el efectivo','learn','Lecciones breves para comprender los fondos y movimientos')}</div><p class="source">Esta guía orienta; registra las operaciones en el sistema de caja.</p>` : ''}`;
     }
     document.title = (id === 'home' ? 'Guía de caja' : `${root.querySelector('h1').textContent} · Guía de caja`);
     root.focus({preventScroll:true});
