@@ -1,10 +1,23 @@
 (function () {
   'use strict';
   const root = document.getElementById('app');
-  let CASES, GUIDES, FLOW;
+  let CASES, GUIDES, FLOW, LESSONS;
+  let lessonState;
+  const PROGRESS_KEY = 'cash-guide-learning-v1';
   const rememberButton = document.getElementById('forget-device');
   const escape = value => String(value).replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
-  const valid = id => Boolean(FLOW) && (id === 'index' || Boolean(FLOW[id]) || (id.startsWith('case:') && Boolean(CASES[id.slice(5)])) || (id.startsWith('guide:') && Boolean(GUIDES[id.slice(6)])));
+  const valid = id => Boolean(FLOW) && (id === 'index' || id === 'learn' || Boolean(FLOW[id]) || (id.startsWith('case:') && Boolean(CASES[id.slice(5)])) || (id.startsWith('guide:') && Boolean(GUIDES[id.slice(6)])) || (id.startsWith('learn:') && Boolean(LESSONS?.items[id.slice(6)])));
+  const progress = () => {
+    try { return JSON.parse(localStorage.getItem(PROGRESS_KEY)) || {}; }
+    catch (_) { return {}; }
+  };
+  const saveProgress = data => { try { localStorage.setItem(PROGRESS_KEY, JSON.stringify(data)); } catch (_) { /* Progress is optional. */ } };
+  const lessonProgress = id => progress()[id] || {count:0,status:'Pendiente'};
+  function recordProgress(id, changes) {
+    const all = progress();
+    all[id] = {...lessonProgress(id),...changes};
+    saveProgress(all);
+  }
   const bytes = base64 => Uint8Array.from(atob(base64), char => char.charCodeAt(0));
   function savedKey(action, value) {
     return new Promise((resolve, reject) => {
@@ -34,7 +47,7 @@
   async function decryptWithKey(key, content) {
     const plaintext = await crypto.subtle.decrypt({name:'AES-GCM',iv:bytes(content.iv)},key,bytes(content.data));
     const data = JSON.parse(new TextDecoder().decode(plaintext));
-    if (Object.keys(data.CASES || {}).length !== 19 || !data.FLOW?.home || !data.GUIDES?.fallback) throw Error('Invalid content');
+    if (Object.keys(data.CASES || {}).length !== 19 || !data.FLOW?.home || !data.GUIDES?.fallback || Object.keys(data.LESSONS?.items || {}).length !== 6) throw Error('Invalid content');
     return data;
   }
   async function decrypt(passphrase) {
@@ -44,7 +57,7 @@
     return {data:await decryptWithKey(key, content),key,salt:content.salt};
   }
   function openGuide(data, remembered) {
-    CASES = data.CASES; GUIDES = data.GUIDES; FLOW = data.FLOW;
+    CASES = data.CASES; GUIDES = data.GUIDES; FLOW = data.FLOW; LESSONS = data.LESSONS;
     document.getElementById('all-cases').hidden = false;
     rememberButton.hidden = !remembered;
     render();
@@ -100,6 +113,7 @@
     if (!valid(id)) return;
     if (route() === id) return;
     history.pushState({fromApp:true}, '', '#' + encodeURIComponent(id));
+    lessonState = undefined;
     render();
   }
   function back() {
@@ -124,31 +138,95 @@
       actions.firstElementChild.classList.add('secondary');
       actions.prepend(action);
     }
+    if (item.lesson && valid(`learn:${item.lesson}`)) {
+      const why = document.createElement('div');
+      why.className = 'why-link';
+      why.innerHTML = `<p>¿Quieres entender el motivo de este movimiento?</p>${button('¿Por qué se hace así?',`learn:${item.lesson}`,'Abre una lección y luego vuelve a este caso')}`;
+      root.querySelector('.actions').before(why);
+    }
+  }
+  const fund = key => {
+    const item = LESSONS.funds[key];
+    return `<span class="fund-name"><span aria-hidden="true">${escape(item.icon)}</span> ${escape(item.name)}</span>`;
+  };
+  function visual(item) {
+    const v = item.visual;
+    if (v.type === 'funds') return `<div class="fund-grid">${Object.entries(LESSONS.funds).map(([key,f]) => `<details class="fund-card"><summary>${fund(key)}<small>${escape(f.short)}</small></summary><p><strong>Sirve para:</strong> ${escape(f.serves)}</p><p><strong>No significa:</strong> ${escape(f.not)}</p></details>`).join('')}</div>`;
+    if (v.type === 'movement') return `<div class="learning-visual"><div class="movement"><div><small>ORIGEN</small>${fund(v.from)}</div><span class="movement-arrow" aria-hidden="true">→</span><div><small>DESTINO</small>${fund(v.to)}</div></div><p class="visual-motive"><strong>Motivo:</strong> ${escape(v.motive)}</p><p class="visual-note">${escape(v.note)}</p></div>`;
+    if (v.type === 'meaning') return `<div class="learning-visual"><p class="visual-kicker">El mismo cambio en caja puede tener historias distintas</p><div class="meaning-grid">${v.examples.map(e=>`<div class="meaning-card"><strong>${escape(e.effect)}</strong><p>${escape(e.origin)}</p><span>${escape(e.meaning)}</span></div>`).join('')}</div><p class="visual-note">${escape(v.note)}</p></div>`;
+    if (v.type === 'cycle') return `<div class="learning-visual"><div class="cycle-list">${v.stages.map((s,i)=>`<div class="cycle-stage"><span class="stage-num">${i+1}</span><div><strong>${escape(s.title)}</strong><p>${escape(s.text)}</p></div></div>`).join('')}</div><p class="visual-note">${escape(v.note)}</p></div>`;
+    if (v.type === 'decision') return `<div class="learning-visual"><div class="decision-list">${v.stages.map((s,i)=>`<div class="decision-stage"><span class="stage-num">${i+1}</span><div><strong>${escape(s.title)}</strong><p>${escape(s.text)}</p></div></div>`).join('')}</div><p class="visual-note">${escape(v.note)}</p></div>`;
+    if (v.type === 'compare') return `<div class="learning-visual"><div class="meaning-grid">${v.sides.map(s=>`<div class="meaning-card"><strong>${escape(s.title)}</strong><p>${escape(s.text)}</p></div>`).join('')}</div><p class="visual-note">${escape(v.note)}</p></div>`;
+    return '';
+  }
+  function renderLearnList() {
+    root.innerHTML = `<button class="back" type="button" data-back>← Volver</button><p class="eyebrow">Capacitación</p><h1>Entender el efectivo</h1><p class="lead">Seis lecciones breves para explicar qué ocurrió con el dinero antes de elegir una operación en Eleventa. Puedes volver a la guía en cualquier momento.</p><div class="lesson-list">${Object.entries(LESSONS.items).map(([id,item])=>button(`${id}. ${item.title}`,`learn:${id}`,lessonProgress(id).status)).join('')}</div><p class="source">El avance se guarda solo en este dispositivo, no por persona. «Comprendido» es una autoevaluación: debes poder explicar la respuesta con tus palabras.</p><button class="back reset-progress" type="button" data-reset-progress>Borrar avance de este dispositivo</button>`;
+  }
+  function renderLesson(id) {
+    const item = LESSONS.items[id];
+    const saved = lessonProgress(id);
+    if (!lessonState || lessonState.id !== id) lessonState = {id,index:Math.min(saved.count || 0,item.scenarios.length),selected:null};
+    const index = lessonState.index;
+    const scenario = item.scenarios[index];
+    const answered = lessonState.selected !== null;
+    const correct = answered && lessonState.selected === scenario?.correct;
+    const options = scenario?.options.map((option,n)=>`<button class="answer${answered && n===lessonState.selected ? (correct?' is-correct':' is-wrong') : ''}" type="button" data-answer="${n}" ${correct?'disabled':''}>${escape(option)}</button>`).join('') || '';
+    const feedback = answered ? `<div class="answer-feedback ${correct?'good':'try-again'}" role="status"><strong>${correct?'Así es.':'Revisa la situación.'}</strong> ${escape(scenario.feedback)}</div>${correct?`<button class="button" type="button" data-next-question>${index+1===item.scenarios.length?'Terminar ejercicios':'Siguiente ejercicio'}</button>`:'<p class="source">Elige otra respuesta para continuar.</p>'}` : '';
+    const exercise = scenario ? `<div class="exercise" id="exercise"><p class="eyebrow">Ejercicio ${index+1} de ${item.scenarios.length}</p><h2>${escape(scenario.question)}</h2><div class="answer-list">${options}</div>${feedback}</div>` : `<div class="exercise" id="exercise"><p class="eyebrow">Ejercicios terminados</p><h2>Explícalo con tus palabras</h2><p>${escape(item.reflection)}</p><p class="source">El sistema no puede comprobar una explicación verbal. Marca «Comprendido» solo cuando puedas explicarlo sin mirar la respuesta.</p>${saved.status==='Comprendido'?'<p class="answer-feedback good">Marcaste esta lección como comprendida.</p>':'<button class="button" type="button" data-understood>Ya puedo explicarlo</button>'}<button class="button secondary" type="button" data-repeat>Repetir ejercicios</button></div>`;
+    root.innerHTML = `<button class="back" type="button" data-back>← Volver</button><p class="eyebrow">Capacitación · Lección ${escape(id)} de 6 · ${escape(saved.status)}</p><h1>${escape(item.title)}</h1><p class="lead">${escape(item.idea)}</p><div class="panel lesson-concept"><h2>La idea</h2><p>${escape(item.concept)}</p></div>${visual(item)}${exercise}<div class="actions"><button class="button secondary" type="button" data-go="learn">Todas las lecciones</button>${Number(id)<6?`<button class="button secondary" type="button" data-go="learn:${Number(id)+1}">Siguiente lección</button>`:'<button class="button secondary" type="button" data-go="home">Ir a la guía</button>'}</div>`;
   }
   function render() {
     const id = route();
     if (id === 'index') {
       root.innerHTML = `<button class="back" type="button" data-back>← Volver</button><p class="eyebrow">Consulta rápida</p><h1>Todos los casos</h1><p class="lead">También puedes iniciar desde la situación del turno para llegar al caso adecuado.</p><div class="case-grid">${Object.entries(CASES).map(([n,item]) => button(`${n}. ${item.title}`,`case:${n}`)).join('')}${button('Solo contar o acomodar efectivo','guide:count')}${button('Tengo una duda','guide:fallback')}${button('Cierre final del día','guide:final')}</div>`;
+    } else if (id === 'learn') {
+      renderLearnList();
+    } else if (id.startsWith('learn:')) {
+      renderLesson(id.slice(6));
     } else if (id.startsWith('case:') || id.startsWith('guide:')) {
       result(id, id.startsWith('case:') ? CASES[id.slice(5)] : GUIDES[id.slice(6)]);
     } else {
       const node = FLOW[id];
-      root.innerHTML = `${id === 'home' ? '' : '<button class="back" type="button" data-back>← Volver</button>'}<p class="eyebrow">Guía de caja</p><h1>${escape(node.title)}</h1>${node.description ? `<p class="lead">${escape(node.description)}</p>` : '<p class="lead">Selecciona la situación que corresponde.</p>'}<div class="choice-list">${node.choices.map(([label,next,hint]) => button(label,next,hint)).join('')}</div>${id === 'home' ? '<p class="source">Esta guía orienta; registra las operaciones en el sistema de caja.</p>' : ''}`;
+      root.innerHTML = `${id === 'home' ? '' : '<button class="back" type="button" data-back>← Volver</button>'}<p class="eyebrow">Guía de caja</p><h1>${escape(node.title)}</h1>${node.description ? `<p class="lead">${escape(node.description)}</p>` : '<p class="lead">Selecciona la situación que corresponde.</p>'}<div class="choice-list">${node.choices.map(([label,next,hint]) => button(label,next,hint)).join('')}</div>${id === 'home' ? `<div class="learning-entry"><p class="eyebrow">Aprender</p>${button('Entender el efectivo','learn','Lecciones breves para comprender los fondos y movimientos')}</div><p class="source">Esta guía orienta; registra las operaciones en el sistema de caja.</p>` : ''}`;
     }
     document.title = (id === 'home' ? 'Guía de caja' : `${root.querySelector('h1').textContent} · Guía de caja`);
     root.focus({preventScroll:true});
     window.scrollTo(0, 0);
   }
   document.addEventListener('click', event => {
-    const target = event.target.closest('[data-go], [data-back]');
+    const target = event.target.closest('[data-go], [data-back], [data-answer], [data-next-question], [data-understood], [data-repeat], [data-reset-progress]');
     if (!target) return;
-    if (target.hasAttribute('data-back')) back();
+    if (target.hasAttribute('data-answer') && route().startsWith('learn:')) {
+      const id = route().slice(6), item = LESSONS.items[id];
+      const n = Number(target.dataset.answer);
+      if (!Number.isInteger(n) || !item.scenarios[lessonState.index]?.options[n] || lessonState.selected === item.scenarios[lessonState.index].correct) return;
+      lessonState.selected = n;
+      if (n === item.scenarios[lessonState.index].correct) recordProgress(id,{count:Math.max(lessonProgress(id).count || 0,lessonState.index+1),status:lessonProgress(id).status==='Comprendido'?'Comprendido':'Practicando'});
+      renderLesson(id);
+      root.querySelector('.answer-feedback')?.scrollIntoView({block:'nearest'});
+    } else if (target.hasAttribute('data-next-question') && route().startsWith('learn:')) {
+      lessonState.index += 1; lessonState.selected = null;
+      renderLesson(route().slice(6));
+      root.querySelector('#exercise')?.scrollIntoView({block:'start'});
+    } else if (target.hasAttribute('data-understood') && route().startsWith('learn:')) {
+      const id = route().slice(6);
+      if (lessonState.index >= LESSONS.items[id].scenarios.length) { recordProgress(id,{count:lessonState.index,status:'Comprendido'}); renderLesson(id); }
+    } else if (target.hasAttribute('data-repeat') && route().startsWith('learn:')) {
+      lessonState.index = 0; lessonState.selected = null; renderLesson(route().slice(6));
+      root.querySelector('#exercise')?.scrollIntoView({block:'start'});
+    } else if (target.hasAttribute('data-reset-progress') && route()==='learn') {
+      if (window.confirm('¿Borrar el avance de capacitación guardado en este dispositivo?')) {
+        try { localStorage.removeItem(PROGRESS_KEY); } catch (_) { /* Storage may be unavailable. */ }
+        renderLearnList();
+      }
+    } else if (target.hasAttribute('data-back')) back();
     else navigate(target.dataset.go);
   });
   document.getElementById('all-cases').addEventListener('click', () => { if (FLOW) navigate('index'); });
   rememberButton.addEventListener('click', async () => {
     try { await savedKey('delete'); } catch (_) { return; }
-    CASES = GUIDES = FLOW = undefined;
+    try { localStorage.removeItem(PROGRESS_KEY); } catch (_) { /* Storage may be unavailable. */ }
+    CASES = GUIDES = FLOW = LESSONS = undefined;
     history.replaceState(null, '', location.pathname + location.search);
     showUnlock();
   });

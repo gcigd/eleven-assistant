@@ -4,6 +4,8 @@ PWA estática con contenido cifrado para consulta sin conexión. El navegador de
 
 La opción «Recordar en este dispositivo» guarda en IndexedDB una llave de descifrado no exportable, nunca la frase. Viene desactivada. «Olvidar dispositivo» borra la llave local y bloquea la guía. Al cambiar la sal del contenido cifrado, la llave guardada deja de servir y se solicita de nuevo la frase. El almacenamiento puede eliminarse por el navegador; entonces se deberá introducir la frase otra vez.
 
+La sección «Entender el efectivo» incluye seis lecciones y ejercicios en el mismo contenido cifrado. El avance se guarda solamente en el almacenamiento local del dispositivo, no por persona; «Comprendido» es una autoevaluación después de completar los escenarios y explicar la idea en voz alta. «Borrar avance» reinicia esos estados. «Olvidar dispositivo» elimina la llave de acceso y el avance local.
+
 ## Publicación y acceso
 
 Este repositorio y cualquier GitHub Pages asociado pueden ser públicos. El cifrado protege el contenido de la guía **mientras la frase siga siendo secreta y fuerte**; el nombre del repositorio, la interfaz, el código y los archivos cifrados siguen siendo visibles. Una frase compartida no identifica a cada operador ni permite revocar a uno sin cambiarla para todos.
