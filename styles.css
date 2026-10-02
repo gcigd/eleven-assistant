@@ -183,23 +183,21 @@ a, .source a { color: #164bb9; }
 .route-end .fund-name { flex-direction: column; align-items: flex-start; line-height: 1.25; }
 .route-middle { display: grid; align-content: center; justify-items: center; color: var(--blue); }
 .route-middle > span { font-size: 32px; font-weight: 800; line-height: 1; }
-.route-middle small { color: var(--ink); font-size: 14px; font-weight: 700; white-space: nowrap; }
+.route-amount { margin: 10px 0 0; text-align: center; color: var(--ink); font-size: 16px; font-weight: 800; }
 .route-motive { margin: 10px 0 0; text-align: center; font-size: 16px; font-weight: 700; }
 .route-list { display: grid; gap: 10px; }
 .route-card, .inspect-card { padding: 14px; border: 1px solid #cbd9f0; border-radius: 13px; background: #fff; }
 .route-card summary, .inspect-card summary { cursor: pointer; list-style: none; font-weight: 700; }
 .route-card summary::-webkit-details-marker, .inspect-card summary::-webkit-details-marker { display: none; }
-.route-card summary { display: flex; align-items: center; gap: 10px; }
-.route-card summary .fund-symbol { transform: scale(.7); transform-origin: left center; margin-right: -12px; }
-.route-card summary .fund-name { min-width: 0; font-size: 15px; }
-.route-card summary > span:nth-child(2) { color: var(--blue); font-size: 23px; }
-.route-card summary::after { margin-left: auto; }
+.route-card summary { display: grid; grid-template-columns: minmax(0,1fr) 24px minmax(0,1fr) 24px; align-items: center; gap: 6px; }
+.route-card summary .fund-name { min-width: 0; flex-direction: column; align-items: flex-start; font-size: 15px; line-height: 1.25; overflow-wrap: anywhere; }
+.route-card summary > span:nth-child(2) { color: var(--blue); font-size: 23px; text-align: center; }
+.route-card summary::after { float: none; margin-left: 0; justify-self: end; }
 .route-card p, .inspect-card p { margin: 12px 0 0; color: var(--muted); }
 .meaning-card .money-route { grid-template-columns: minmax(0,1fr) 25px minmax(0,1fr); gap: 3px; }
 .meaning-card .route-end { padding: 8px; min-height: 100px; font-size: 14px; }
 .meaning-card .fund-symbol { transform: scale(.8); transform-origin: left center; margin-right: -6px; }
 .meaning-card .route-middle > span { font-size: 24px; }
-.meaning-card .route-middle small { font-size: 12px; }
 .meaning-card .route-motive { font-size: 15px; }
 .meaning-card > strong { margin-top: 16px; }
 .cycle-result { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 16px 0; }
