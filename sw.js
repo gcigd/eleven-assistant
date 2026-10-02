@@ -1,4 +1,4 @@
-const CACHE = 'guia-caja-v0.4.2';
+const CACHE = 'guia-caja-v0.5.0';
 const ASSETS = ['./','./index.html','./styles.css','./content.enc.json','./app.js','./manifest.webmanifest','./icon.svg','./icon-192.png?v=0.2.13','./icon-512.png?v=0.2.13'];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS.map(url => new Request(new URL(url, self.location.href), {cache:'reload'})))).then(() => self.skipWaiting()));
