@@ -3,7 +3,7 @@
   const root = document.getElementById('app');
   let CASES, GUIDES, FLOW, LESSONS;
   let lessonState;
-  const PROGRESS_KEY = 'cash-guide-learning-v1';
+  const PROGRESS_KEY = 'cash-guide-learning-v2';
   const rememberButton = document.getElementById('forget-device');
   const escape = value => String(value).replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
   const valid = id => Boolean(FLOW) && (id === 'index' || id === 'learn' || Boolean(FLOW[id]) || (id.startsWith('case:') && Boolean(CASES[id.slice(5)])) || (id.startsWith('guide:') && Boolean(GUIDES[id.slice(6)])) || (id.startsWith('learn:') && Boolean(LESSONS?.items[id.slice(6)])));
@@ -145,18 +145,16 @@
       root.querySelector('.actions').before(why);
     }
   }
-  const fund = key => {
-    const item = LESSONS.funds[key];
-    return `<span class="fund-name"><span aria-hidden="true">${escape(item.icon)}</span> ${escape(item.name)}</span>`;
-  };
-  function visual(item) {
+  const vessel = key => `<span class="fund-name"><span class="fund-symbol fund-symbol--${escape(key)}" aria-hidden="true"><span></span></span><span>${escape(LESSONS.funds[key].name)}</span></span>`;
+  const routeVisual = (from,to,amount,motive) => `<div class="money-route"><div class="route-end"><small>SALE DE</small>${LESSONS.funds[from]?vessel(from):`<span>${escape(LESSONS.people[from])}</span>`}</div><div class="route-middle"><span aria-label="hacia">→</span>${amount?`<small>${escape(amount)}</small>`:''}</div><div class="route-end"><small>LLEGA A</small>${LESSONS.funds[to]?vessel(to):`<span>${escape(LESSONS.people[to])}</span>`}</div></div>${motive?`<p class="route-motive">${escape(motive)}</p>`:''}`;
+  function learningVisual(item) {
     const v = item.visual;
-    if (v.type === 'funds') return `<div class="fund-grid">${Object.entries(LESSONS.funds).map(([key,f]) => `<details class="fund-card"><summary>${fund(key)}<small>${escape(f.short)}</small></summary><p><strong>Sirve para:</strong> ${escape(f.serves)}</p><p><strong>No significa:</strong> ${escape(f.not)}</p></details>`).join('')}</div>`;
-    if (v.type === 'movement') return `<div class="learning-visual"><div class="movement"><div><small>ORIGEN</small>${fund(v.from)}</div><span class="movement-arrow" aria-hidden="true">→</span><div><small>DESTINO</small>${fund(v.to)}</div></div><p class="visual-motive"><strong>Motivo:</strong> ${escape(v.motive)}</p><p class="visual-note">${escape(v.note)}</p></div>`;
-    if (v.type === 'meaning') return `<div class="learning-visual"><p class="visual-kicker">El mismo cambio en caja puede tener historias distintas</p><div class="meaning-grid">${v.examples.map(e=>`<div class="meaning-card"><strong>${escape(e.effect)}</strong><p>${escape(e.origin)}</p><span>${escape(e.meaning)}</span></div>`).join('')}</div><p class="visual-note">${escape(v.note)}</p></div>`;
-    if (v.type === 'cycle') return `<div class="learning-visual"><div class="cycle-list">${v.stages.map((s,i)=>`<div class="cycle-stage"><span class="stage-num">${i+1}</span><div><strong>${escape(s.title)}</strong><p>${escape(s.text)}</p></div></div>`).join('')}</div><p class="visual-note">${escape(v.note)}</p></div>`;
-    if (v.type === 'decision') return `<div class="learning-visual"><div class="decision-list">${v.stages.map((s,i)=>`<div class="decision-stage"><span class="stage-num">${i+1}</span><div><strong>${escape(s.title)}</strong><p>${escape(s.text)}</p></div></div>`).join('')}</div><p class="visual-note">${escape(v.note)}</p></div>`;
-    if (v.type === 'compare') return `<div class="learning-visual"><div class="meaning-grid">${v.sides.map(s=>`<div class="meaning-card"><strong>${escape(s.title)}</strong><p>${escape(s.text)}</p></div>`).join('')}</div><p class="visual-note">${escape(v.note)}</p></div>`;
+    if (v.type === 'funds') return `<div class="fund-grid">${Object.entries(LESSONS.funds).map(([key,f])=>`<details class="fund-card"><summary>${vessel(key)}<small>${escape(f.short)}</small></summary><p><strong>Para qué sirve:</strong> ${escape(f.serves)}</p><p><strong>Ejemplo:</strong> ${escape(f.example)}</p><p><strong>Otro ejemplo:</strong> ${escape(f.more)}</p><p><strong>Error común:</strong> ${escape(f.error)}</p></details>`).join('')}</div>`;
+    if (v.type === 'movement') return `<div class="learning-visual"><h3>Así viaja el dinero</h3>${routeVisual(v.from,v.to,v.amount,v.motive)}<p class="visual-note">La punta de la flecha muestra a dónde llegó.</p><h3>Otros recorridos</h3><div class="route-list">${v.routes.map(r=>`<details class="route-card"><summary>${vessel(r.from)}<span aria-label="hacia">→</span>${vessel(r.to)}</summary><p>${escape(r.example)}</p></details>`).join('')}</div></div>`;
+    if (v.type === 'meaning') return `<div class="learning-visual"><h3>${escape(v.inTitle)}</h3><div class="meaning-grid">${v.incoming.map(e=>`<div class="meaning-card">${routeVisual(e.from,e.to,e.amount,e.text)}<strong>${escape(e.meaning)}</strong></div>`).join('')}</div><h3>${escape(v.outTitle)}</h3><div class="meaning-grid">${v.outgoing.map(e=>`<div class="meaning-card">${routeVisual(e.from,e.to,e.amount,e.text)}<strong>${escape(e.meaning)}</strong></div>`).join('')}</div></div>`;
+    if (v.type === 'cycle') return `<div class="learning-visual"><h3>${escape(v.title)}</h3>${routeVisual(v.start.from,v.start.to,v.start.amount,v.start.motive)}<p class="visual-note">${escape(v.split)}</p><div class="cycle-paths">${v.paths.map(p=>routeVisual(p.from,p.to,p.amount,p.motive)).join('')}</div><p class="visual-note">${escape(v.total)}</p><h3>${escape(v.compareTitle)}</h3><div class="meaning-grid">${v.comparisons.map(c=>`<div class="meaning-card">${routeVisual(c.from,c.to,c.amount,c.motive)}<strong>${escape(c.label)}</strong></div>`).join('')}</div></div>`;
+    if (v.type === 'decision') return `<div class="learning-visual"><div class="decision-tree"><div class="decision-main">${escape(v.root)}</div><div class="decision-next">${escape(v.question)}</div><div class="decision-branches"><div><strong>${escape(v.yes.label)}</strong><p>${escape(v.yes.text)}</p></div><div><strong>${escape(v.no.label)}</strong><p>${escape(v.no.text)}</p></div></div><p class="visual-note">${escape(v.note)}</p></div></div>`;
+    if (v.type === 'compare') return `<div class="learning-visual"><div class="meaning-grid">${v.sides.map(s=>`<div class="meaning-card"><strong>${escape(s.title)}</strong><p>${escape(s.text)}</p><span>${escape(s.symbol)}</span></div>`).join('')}</div><p class="visual-note">${escape(v.note)}</p><h3>${escape(v.compareTitle)}</h3><div class="meaning-grid">${v.paths.map(p=>`<div class="meaning-card"><strong>${escape(p.title)}</strong><p>${escape(p.text)}</p></div>`).join('')}</div><h3>${escape(v.inspectTitle)}</h3><p>${escape(v.inspectIntro)}</p><div class="inspect-grid">${v.checks.map(c=>`<details class="inspect-card"><summary>${escape(c.name)}</summary><p>${escape(c.detail)}</p></details>`).join('')}</div></div>`;
     return '';
   }
   function renderLearnList() {
@@ -165,7 +163,11 @@
   function renderLesson(id) {
     const item = LESSONS.items[id];
     const saved = lessonProgress(id);
-    if (!lessonState || lessonState.id !== id) lessonState = {id,index:Math.min(saved.count || 0,item.scenarios.length),selected:null};
+    if (!lessonState || lessonState.id !== id) lessonState = {id,index:Math.min(saved.count || 0,item.scenarios.length),selected:null,practiceIndex:Math.min(saved.practice || 0,item.practice?.steps.length || 0),practiceSelected:null};
+    const practiceStep = item.practice?.steps[lessonState.practiceIndex];
+    const practiceAnswered = lessonState.practiceSelected !== null;
+    const practiceCorrect = practiceAnswered && lessonState.practiceSelected === practiceStep?.correct;
+    const practice = practiceStep ? `<div class="exercise practice" id="exercise"><p class="eyebrow">Arma la respuesta · Paso ${lessonState.practiceIndex+1} de ${item.practice.steps.length}</p><p>${escape(item.practice.context)}</p><h2>${escape(practiceStep.question)}</h2><div class="answer-list">${practiceStep.options.map((o,n)=>`<button class="answer${practiceAnswered&&n===lessonState.practiceSelected?(practiceCorrect?' is-correct':' is-wrong'):''}" type="button" data-practice-answer="${n}" ${practiceCorrect?'disabled':''}>${escape(o)}</button>`).join('')}</div>${practiceAnswered?`<div class="answer-feedback ${practiceCorrect?'good':'try-again'}" role="status"><strong>${practiceCorrect?'Así es.':'Revisa qué pasó.'}</strong> ${escape(practiceStep.feedback)}</div>${practiceCorrect?'<button class="button" type="button" data-next-practice>Continuar</button>':'<p class="source">Elige otra respuesta.</p>'}`:''}</div>` : '';
     const index = lessonState.index;
     const scenario = item.scenarios[index];
     const answered = lessonState.selected !== null;
@@ -173,7 +175,7 @@
     const options = scenario?.options.map((option,n)=>`<button class="answer${answered && n===lessonState.selected ? (correct?' is-correct':' is-wrong') : ''}" type="button" data-answer="${n}" ${correct?'disabled':''}>${escape(option)}</button>`).join('') || '';
     const feedback = answered ? `<div class="answer-feedback ${correct?'good':'try-again'}" role="status"><strong>${correct?'Así es.':'Revisa la situación.'}</strong> ${escape(scenario.feedback)}</div>${correct?`<button class="button" type="button" data-next-question>${index+1===item.scenarios.length?'Terminar ejercicios':'Siguiente ejercicio'}</button>`:'<p class="source">Elige otra respuesta para continuar.</p>'}` : '';
     const exercise = scenario ? `<div class="exercise" id="exercise"><p class="eyebrow">Ejercicio ${index+1} de ${item.scenarios.length}</p><h2>${escape(scenario.question)}</h2><div class="answer-list">${options}</div>${feedback}</div>` : `<div class="exercise" id="exercise"><p class="eyebrow">Ejercicios terminados</p><h2>Explícalo con tus palabras</h2><p>${escape(item.reflection)}</p><p class="source">El sistema no puede comprobar una explicación verbal. Marca «Comprendido» solo cuando puedas explicarlo sin mirar la respuesta.</p>${saved.status==='Comprendido'?'<p class="answer-feedback good">Marcaste esta lección como comprendida.</p>':'<button class="button" type="button" data-understood>Ya puedo explicarlo</button>'}<button class="button secondary" type="button" data-repeat>Repetir ejercicios</button></div>`;
-    root.innerHTML = `<button class="back" type="button" data-back>← Volver</button><p class="eyebrow">Capacitación · Lección ${escape(id)} de 6 · ${escape(saved.status)}</p><h1>${escape(item.title)}</h1><p class="lead">${escape(item.idea)}</p><div class="panel lesson-concept"><h2>La idea</h2><p>${escape(item.concept)}</p></div>${visual(item)}${exercise}<div class="actions"><button class="button secondary" type="button" data-go="learn">Todas las lecciones</button>${Number(id)<6?`<button class="button secondary" type="button" data-go="learn:${Number(id)+1}">Siguiente lección</button>`:'<button class="button secondary" type="button" data-go="home">Ir a la guía</button>'}</div>`;
+    root.innerHTML = `<button class="back" type="button" data-back>← Volver</button><p class="eyebrow">Capacitación · Lección ${escape(id)} de 6 · ${escape(saved.status)}</p><h1>${escape(item.title)}</h1><p class="lead">${escape(item.idea)}</p><div class="panel lesson-concept"><h2>La idea</h2><p>${escape(item.concept)}</p></div><p class="lesson-example">${escape(item.example)}</p>${learningVisual(item)}${practice || exercise}<div class="actions"><button class="button secondary" type="button" data-go="learn">Todas las lecciones</button>${Number(id)<6?`<button class="button secondary" type="button" data-go="learn:${Number(id)+1}">Siguiente lección</button>`:'<button class="button secondary" type="button" data-go="home">Ir a la guía</button>'}</div>`;
   }
   function render() {
     const id = route();
@@ -194,9 +196,22 @@
     window.scrollTo(0, 0);
   }
   document.addEventListener('click', event => {
-    const target = event.target.closest('[data-go], [data-back], [data-answer], [data-next-question], [data-understood], [data-repeat], [data-reset-progress]');
+    const target = event.target.closest('[data-go], [data-back], [data-answer], [data-next-question], [data-understood], [data-repeat], [data-reset-progress], [data-practice-answer], [data-next-practice]');
     if (!target) return;
-    if (target.hasAttribute('data-answer') && route().startsWith('learn:')) {
+    if (target.hasAttribute('data-practice-answer') && route().startsWith('learn:')) {
+      const id=route().slice(6),step=LESSONS.items[id].practice?.steps[lessonState.practiceIndex];
+      const n=Number(target.dataset.practiceAnswer);
+      if(!step||!Number.isInteger(n)||!step.options[n]||lessonState.practiceSelected===step.correct)return;
+      lessonState.practiceSelected=n;
+      if(n===step.correct)recordProgress(id,{practice:Math.max(lessonProgress(id).practice||0,lessonState.practiceIndex+1),status:'Practicando'});
+      renderLesson(id);
+      root.querySelector('.practice .answer-feedback')?.scrollIntoView({block:'nearest'});
+    } else if (target.hasAttribute('data-next-practice') && route().startsWith('learn:')) {
+      const id=route().slice(6),step=LESSONS.items[id].practice?.steps[lessonState.practiceIndex];
+      if(!step||lessonState.practiceSelected!==step.correct)return;
+      lessonState.practiceIndex+=1;lessonState.practiceSelected=null;renderLesson(id);
+      root.querySelector('#exercise')?.scrollIntoView({block:'start'});
+    } else if (target.hasAttribute('data-answer') && route().startsWith('learn:')) {
       const id = route().slice(6), item = LESSONS.items[id];
       const n = Number(target.dataset.answer);
       if (!Number.isInteger(n) || !item.scenarios[lessonState.index]?.options[n] || lessonState.selected === item.scenarios[lessonState.index].correct) return;
@@ -210,7 +225,8 @@
       root.querySelector('#exercise')?.scrollIntoView({block:'start'});
     } else if (target.hasAttribute('data-understood') && route().startsWith('learn:')) {
       const id = route().slice(6);
-      if (lessonState.index >= LESSONS.items[id].scenarios.length) { recordProgress(id,{count:lessonState.index,status:'Comprendido'}); renderLesson(id); }
+      const item=LESSONS.items[id];
+      if (lessonState.index >= item.scenarios.length && lessonState.practiceIndex >= (item.practice?.steps.length||0)) { recordProgress(id,{count:lessonState.index,status:'Comprendido'}); renderLesson(id); }
     } else if (target.hasAttribute('data-repeat') && route().startsWith('learn:')) {
       lessonState.index = 0; lessonState.selected = null; renderLesson(route().slice(6));
       root.querySelector('#exercise')?.scrollIntoView({block:'start'});
