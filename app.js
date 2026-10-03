@@ -1,13 +1,13 @@
 (function () {
   'use strict';
   const root = document.getElementById('app');
-  let CASES, GUIDES, FLOW, LESSONS;
+  let CASES, GUIDES, FLOW, LESSONS, WORKFLOWS, wizard;
   let lessonState;
   const PROGRESS_KEY = 'cash-guide-learning-v2';
   const rememberButton = document.getElementById('forget-device');
   const deviceActions = document.getElementById('device-actions');
   const escape = value => String(value).replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
-  const valid = id => Boolean(FLOW) && (id === 'index' || id === 'learn' || Boolean(FLOW[id]) || (id.startsWith('case:') && Boolean(CASES[id.slice(5)])) || (id.startsWith('guide:') && Boolean(GUIDES[id.slice(6)])) || (id.startsWith('learn:') && Boolean(LESSONS?.items[id.slice(6)])));
+  const valid = id => Boolean(FLOW) && (id === 'home' || id === 'learn' || (id.startsWith('work:') && wizard?.valid(id.slice(5))) || (id.startsWith('learn:') && Boolean(LESSONS?.items[id.slice(6)])));
   const progress = () => {
     try { return JSON.parse(localStorage.getItem(PROGRESS_KEY)) || {}; }
     catch (_) { return {}; }
@@ -48,7 +48,7 @@
   async function decryptWithKey(key, content) {
     const plaintext = await crypto.subtle.decrypt({name:'AES-GCM',iv:bytes(content.iv)},key,bytes(content.data));
     const data = JSON.parse(new TextDecoder().decode(plaintext));
-    if (Object.keys(data.CASES || {}).length !== 19 || !data.FLOW?.home || !data.GUIDES?.fallback || Object.keys(data.LESSONS?.items || {}).length !== 6) throw Error('Invalid content');
+    if (Object.keys(data.CASES || {}).length !== 19 || !data.FLOW?.home || !data.GUIDES?.fallback || Object.keys(data.LESSONS?.items || {}).length !== 6 || data.WORKFLOWS?.routes?.length !== 22 || typeof data.ENGINE !== 'string') throw Error('Invalid content');
     return data;
   }
   async function decrypt(passphrase) {
@@ -58,7 +58,10 @@
     return {data:await decryptWithKey(key, content),key,salt:content.salt};
   }
   function openGuide(data, remembered) {
-    CASES = data.CASES; GUIDES = data.GUIDES; FLOW = data.FLOW; LESSONS = data.LESSONS;
+    CASES = data.CASES; GUIDES = data.GUIDES; FLOW = data.FLOW; LESSONS = data.LESSONS; WORKFLOWS = data.WORKFLOWS;
+    // The engine and its operational strings are authenticated by AES-GCM and loaded only after unlock.
+    new Function(data.ENGINE)();
+    wizard = window.CashWorkflows(root,WORKFLOWS,CASES,GUIDES,navigate);
     document.getElementById('all-cases').hidden = false;
     deviceActions.hidden = false;
     rememberButton.hidden = !remembered;
@@ -188,17 +191,14 @@
   }
   function render() {
     const id = route();
-    if (id === 'index') {
-      root.innerHTML = `<button class="back" type="button" data-back>← Volver</button><p class="eyebrow">Consulta rápida</p><h1>Todos los casos</h1><p class="lead">También puedes iniciar desde la situación del turno para llegar al caso adecuado.</p><div class="case-grid">${Object.entries(CASES).map(([n,item]) => button(`${n}. ${item.title}`,`case:${n}`)).join('')}${button('Solo contar o acomodar efectivo','guide:count')}${button('Tengo una duda','guide:fallback')}${button('Cierre final del día','guide:final')}</div>`;
+    if (id === 'home') {
+      wizard.home();
+    } else if (id.startsWith('work:')) {
+      wizard.render();
     } else if (id === 'learn') {
       renderLearnList();
     } else if (id.startsWith('learn:')) {
       renderLesson(id.slice(6));
-    } else if (id.startsWith('case:') || id.startsWith('guide:')) {
-      result(id, id.startsWith('case:') ? CASES[id.slice(5)] : GUIDES[id.slice(6)]);
-    } else {
-      const node = FLOW[id];
-      root.innerHTML = `${id === 'home' ? '' : '<button class="back" type="button" data-back>← Volver</button>'}<p class="eyebrow">Guía de caja</p><h1>${escape(node.title)}</h1>${node.description ? `<p class="lead">${escape(node.description)}</p>` : '<p class="lead">Selecciona la situación que corresponde.</p>'}<div class="choice-list">${node.choices.map(([label,next,hint],index) => button(label,next,hint,index+1)).join('')}</div>${id === 'home' ? `<div class="learning-entry"><p class="eyebrow">Aprender</p>${button('Entender el efectivo','learn','Lecciones breves para comprender los fondos y movimientos')}</div><p class="source">Esta guía orienta; registra las operaciones en el sistema de caja.</p>` : ''}`;
     }
     document.title = (id === 'home' ? 'Guía de caja' : `${root.querySelector('h1').textContent} · Guía de caja`);
     root.focus({preventScroll:true});
@@ -248,12 +248,20 @@
     } else if (target.hasAttribute('data-back')) back();
     else navigate(target.dataset.go);
   });
-  document.getElementById('all-cases').addEventListener('click', () => { if (FLOW) navigate('index'); });
+  document.getElementById('all-cases').addEventListener('click', () => { if (FLOW) navigate('learn'); });
+  document.getElementById('clear-route').addEventListener('click', () => {
+    if (!FLOW || !wizard?.hasPending()) return;
+    if (!window.confirm('¿Borrar el recorrido guardado? Comprueba antes en Eleventa qué operaciones se realizaron. Borrar la guía no cancela ningún movimiento.')) return;
+    wizard.clear();
+    navigate('home');
+    render();
+  });
   rememberButton.addEventListener('click', async () => {
     if (!window.confirm('¿Olvidar este dispositivo? Se borrarán la llave guardada y el avance de las lecciones. Necesitarás la frase de acceso para volver a abrir la guía.')) return;
     try { await savedKey('delete'); } catch (_) { return; }
     try { localStorage.removeItem(PROGRESS_KEY); } catch (_) { /* Storage may be unavailable. */ }
-    CASES = GUIDES = FLOW = LESSONS = undefined;
+    wizard?.clear();
+    CASES = GUIDES = FLOW = LESSONS = WORKFLOWS = wizard = undefined;
     history.replaceState(null, '', location.pathname + location.search);
     showUnlock();
   });

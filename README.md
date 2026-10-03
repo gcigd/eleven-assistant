@@ -6,6 +6,10 @@ La opción «Recordar en este dispositivo» guarda en IndexedDB una llave de des
 
 La sección «Entender el efectivo» incluye seis lecciones y ejercicios en el mismo contenido cifrado. El avance se guarda solamente en el almacenamiento local del dispositivo, no por persona; «Comprendido» es una autoevaluación después de completar los escenarios y explicar la idea en voz alta. En el pie, «Borrar avance de lecciones» pide confirmación y reinicia solo esos estados.
 
+La portada muestra 22 recorridos buscables. Cada recorrido pide confirmar que el turno corresponda, muestra una acción a la vez y solicita datos solo cuando hacen falta. Los pagos pueden reunir dinero físico desde varias fuentes antes del F8 final. Las instrucciones y el motor de recorridos se incluyen dentro del contenido cifrado. La PWA no recibe datos de Eleventa ni puede comprobar por sí sola lo que se guardó allí.
+
+El marcador local permite recuperar un recorrido si se cierra la PWA; guarda ruta, paso y tipos de movimientos confirmados o pendientes, sin nombres ni importes. Después de una interrupción el operador debe revisar Eleventa y volver a contar antes de continuar. La PWA no lleva saldos por persona. Este marcador tampoco sustituye una copia de seguridad ni sincroniza dispositivos.
+
 Cada ficha del contenido cifrado conserva `steps` como lista de textos y agrega `stepTypes` en el mismo orden (`system`, `physical` o `check`). Esta estructura permite que una versión anterior de la PWA lea el contenido durante una actualización. La interfaz nueva presenta «En Eleventa», «En el local» y «Comprobar y decidir» con etiqueta, icono y color. Cuando una instrucción cruza de un tipo a otro, se divide en pasos consecutivos. La documentación privada del proyecto conserva las razones y las reglas de conteo físico.
 
 ## Publicación y acceso

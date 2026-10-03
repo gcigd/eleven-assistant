@@ -254,6 +254,15 @@ footer { padding: 22px max(24px, calc((100% - 840px) / 2)); border-top: 1px soli
 .remember-note { margin: 0 0 18px !important; }
 [hidden] { display: none !important; }
 button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid #70a0ff; outline-offset: 3px; }
+.workflow-label { display: block; margin: 16px 0 7px; color: var(--ink); font-size: 17px; font-weight: 700; }
+input[type="search"], .workflow-panel input[type="number"], .workflow-panel input[type="text"] { display: block; width: 100%; min-height: 54px; padding: 12px 15px; border: 2px solid #cbd9f0; border-radius: 12px; background: #fff; color: var(--ink); font-size: 19px; }
+#route-search { margin-bottom: 16px; }
+.workflow-panel { margin-bottom: 18px; }
+.workflow-panel .actions { margin-top: 26px; }
+.workflow-panel .lead { margin-bottom: 18px; }
+.workflow-instruction { font-size: 21px; line-height: 1.55; overflow-wrap: anywhere; }
+.workflow-panel .notice { margin: 20px 0; }
+.workflow-panel .choice-list { gap: 12px; }
 @media (min-width: 601px) {
   body { background: #f0f4fb; }
 }
