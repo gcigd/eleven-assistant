@@ -82,6 +82,9 @@ h2 { margin: 0 0 20px; color: var(--ink); font-size: 24px; line-height: 1.25; }
   background: #fff;
   box-shadow: 0 12px 36px rgba(17, 45, 98, .07);
 }
+.workflow-pre { background: #fff9e9; border-color: #edcf83; box-shadow: 0 12px 36px rgba(126, 88, 13, .09); }
+.workflow-done { background: #eef9f0; border-color: #a7d6ad; box-shadow: 0 12px 36px rgba(32, 105, 54, .08); }
+.completion-check { display: grid; place-items: center; width: 52px; height: 52px; margin-bottom: 18px; border-radius: 50%; background: #23834a; color: #fff; font-size: 30px; font-weight: 700; }
 .choice-list { display: grid; gap: 18px; }
 .choice {
   display: flex;
