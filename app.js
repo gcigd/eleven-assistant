@@ -3,9 +3,14 @@
   const root = document.getElementById('app');
   let CASES, GUIDES, FLOW, LESSONS, WORKFLOWS, wizard;
   let lessonState;
+  let serviceWorkerRegistration;
+  let updateRequested = false;
   const PROGRESS_KEY = 'cash-guide-learning-v2';
   const rememberButton = document.getElementById('forget-device');
   const deviceActions = document.getElementById('device-actions');
+  const updateNotice = document.getElementById('update-notice');
+  const updateMessage = document.getElementById('update-message');
+  const updateButton = document.getElementById('update-guide');
   const escape = value => String(value).replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
   const valid = id => Boolean(FLOW) && (id === 'home' || id === 'learn' || (id.startsWith('work:') && wizard?.valid(id.slice(5))) || (id.startsWith('learn:') && Boolean(LESSONS?.items[id.slice(6)])));
   const progress = () => {
@@ -57,6 +62,47 @@
     const key = await crypto.subtle.deriveKey({name:'PBKDF2',hash:'SHA-256',salt:bytes(content.salt),iterations:content.iterations},material,{name:'AES-GCM',length:256},false,['decrypt']);
     return {data:await decryptWithKey(key, content),key,salt:content.salt};
   }
+  const hasPendingWorkflow = () => Boolean(FLOW && wizard?.hasPending());
+  async function updateOfflineStatus() {
+    const targets = document.querySelectorAll('[data-offline-status]');
+    if (!targets.length) return;
+    let message;
+    try {
+      if (!('caches' in window)) throw Error('Cache unavailable');
+      const essentials = ['./','./index.html','./styles.css','./app.js','./content.enc.json'];
+      const cached = await Promise.all(essentials.map(asset => caches.match(new URL(asset, location.href).href, {ignoreSearch:true})));
+      if (cached.every(Boolean)) message = 'Guía lista para usarse sin internet.';
+      else if (navigator.onLine) message = 'Preparando la guía para usarla sin internet. Mantén esta pantalla abierta.';
+      else message = 'Aún no hay una copia completa para usar sin internet.';
+    } catch (_) {
+      message = navigator.onLine ? 'No pudimos confirmar la copia sin internet todavía.' : 'Aún no hay una copia completa para usar sin internet.';
+    }
+    targets.forEach(target => { target.textContent = message; });
+  }
+  function refreshUpdateNotice() {
+    const waiting = serviceWorkerRegistration?.waiting;
+    if (!waiting) {
+      updateNotice.hidden = true;
+      return;
+    }
+    const pending = hasPendingWorkflow();
+    updateMessage.textContent = pending
+      ? 'Hay una nueva versión, pero tienes un registro pendiente. Revísalo en Eleventa y termina o recupera el recorrido antes de actualizar.'
+      : 'Hay una nueva versión disponible. Actualízala solo cuando no tengas un recorrido pendiente.';
+    updateButton.disabled = pending;
+    updateNotice.hidden = false;
+  }
+  function watchForUpdate(registration) {
+    serviceWorkerRegistration = registration;
+    refreshUpdateNotice();
+    registration.addEventListener('updatefound', () => {
+      const installing = registration.installing;
+      if (!installing) return;
+      installing.addEventListener('statechange', () => {
+        if (installing.state === 'installed' && navigator.serviceWorker.controller) refreshUpdateNotice();
+      });
+    });
+  }
   function openGuide(data, remembered) {
     CASES = data.CASES; GUIDES = data.GUIDES; FLOW = data.FLOW; LESSONS = data.LESSONS; WORKFLOWS = data.WORKFLOWS;
     // The engine and its operational strings are authenticated by AES-GCM and loaded only after unlock.
@@ -71,7 +117,8 @@
     document.getElementById('all-cases').hidden = true;
     deviceActions.hidden = true;
     rememberButton.hidden = true;
-    root.innerHTML = '<p class="eyebrow">Acceso local</p><h1>Desbloquear guía</h1><p class="lead">Introduce la frase de acceso para consultar los casos. Después de cargar la guía por completo, podrás usarla sin internet.</p><form id="unlock-form" class="panel unlock"><label for="passphrase">Frase de acceso</label><input id="passphrase" type="password" autocomplete="off" autocapitalize="none" spellcheck="false" required><div class="remember"><input id="remember" type="checkbox"><label for="remember">Recordar en este dispositivo</label></div><p class="small remember-note">Si lo activas, quien tenga acceso a este dispositivo podrá abrir la guía. Puedes borrar la llave desde el pie de la guía.</p><button class="button" type="submit">Desbloquear</button><p id="unlock-error" class="error" role="alert" aria-live="polite"></p></form>';
+    root.innerHTML = '<p class="eyebrow">Guía protegida</p><h1>Desbloquear guía</h1><div class="guide-notice" role="note"><strong>Esta guía no registra movimientos.</strong><br>Guarda cada operación en Eleventa antes de seguir el paso físico.</div><p class="lead">Introduce la frase para consultar los casos. La primera carga necesita internet; después podrás usar la guía sin conexión cuando indique que está lista.</p><p class="unlock-help">¿No tienes la frase? Pídesela al responsable designado antes de operar.</p><form id="unlock-form" class="panel unlock"><label for="passphrase">Frase de acceso</label><input id="passphrase" type="password" autocomplete="off" autocapitalize="none" spellcheck="false" required><div class="remember"><input id="remember" type="checkbox"><label for="remember">Recordar en este dispositivo</label></div><p class="small remember-note">No lo actives en un equipo compartido. Quien use este dispositivo podrá abrir la guía. Puedes borrar el acceso guardado desde el pie de la guía.</p><p class="small offline-status" data-offline-status>Comprobando si la guía está lista para usarse sin internet…</p><button class="button" type="submit">Desbloquear</button><p id="unlock-error" class="error" role="alert" aria-live="polite"></p></form>';
+    updateOfflineStatus();
     document.getElementById('unlock-form').addEventListener('submit', async event => {
       event.preventDefault();
       const input = document.getElementById('passphrase');
@@ -96,7 +143,7 @@
           root.prepend(notice);
         }
       } catch (_) {
-        error.textContent = 'No se pudo desbloquear. Revisa la frase y la conexión si es la primera visita.';
+        error.textContent = 'No se pudo desbloquear. Revisa la frase. Si es tu primera visita, confirma que tienes internet y espera a que la guía termine de prepararse.';
       } finally { button.disabled = false; }
     });
     (async () => {
@@ -203,6 +250,7 @@
     document.title = (id === 'home' ? 'Guía de caja' : `${root.querySelector('h1').textContent} · Guía de caja`);
     root.focus({preventScroll:true});
     window.scrollTo(0, 0);
+    refreshUpdateNotice();
   }
   document.addEventListener('click', event => {
     const target = event.target.closest('[data-go], [data-back], [data-answer], [data-next-question], [data-understood], [data-repeat], [data-reset-progress], [data-practice-answer], [data-next-practice]');
@@ -265,31 +313,40 @@
     history.replaceState(null, '', location.pathname + location.search);
     showUnlock();
   });
+  updateButton.addEventListener('click', () => {
+    if (!serviceWorkerRegistration?.waiting || hasPendingWorkflow()) {
+      refreshUpdateNotice();
+      return;
+    }
+    updateRequested = true;
+    updateButton.disabled = true;
+    updateMessage.textContent = 'Actualizando la guía…';
+    serviceWorkerRegistration.waiting.postMessage({type:'SKIP_WAITING'});
+  });
   addEventListener('popstate', () => { if (FLOW) render(); });
   addEventListener('hashchange', () => { if (FLOW) render(); });
   showUnlock();
+  updateOfflineStatus();
   if ('serviceWorker' in navigator) {
-    let refreshing = false;
-    let registration;
-    const hadController = Boolean(navigator.serviceWorker.controller);
     navigator.serviceWorker.addEventListener('controllerchange', () => {
-      if (hadController && !refreshing) {
-        refreshing = true;
-        location.reload();
-      }
+      if (updateRequested) location.reload();
+      else updateOfflineStatus();
     });
     const checkForUpdate = () => {
-      if (registration && navigator.onLine) registration.update().catch(() => {});
+      if (serviceWorkerRegistration && navigator.onLine) serviceWorkerRegistration.update().catch(() => {});
     };
     addEventListener('load', async () => {
       try {
-        registration = await navigator.serviceWorker.register('./sw.js', {updateViaCache:'none'});
+        const registration = await navigator.serviceWorker.register('./sw.js', {updateViaCache:'none'});
+        watchForUpdate(registration);
+        navigator.serviceWorker.ready.then(updateOfflineStatus).catch(() => {});
         checkForUpdate();
       } catch (_) { /* Offline access still uses the current page. */ }
     });
     document.addEventListener('visibilitychange', () => {
       if (!document.hidden) checkForUpdate();
     });
-    addEventListener('online', checkForUpdate);
+    addEventListener('online', () => { checkForUpdate(); updateOfflineStatus(); });
+    addEventListener('offline', updateOfflineStatus);
   }
 })();

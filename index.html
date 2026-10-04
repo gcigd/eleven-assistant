@@ -18,8 +18,9 @@
       <button class="brand" data-go="home" aria-label="Ir al inicio"><img class="mark" src="./icon.svg" alt=""><span>Caja <small>Guía de decisiones</small></span></button>
       <div class="header-actions"><button id="all-cases" class="text-button" type="button">Lecciones</button></div>
     </header>
+    <div id="update-notice" class="update-notice" role="status" aria-live="polite" hidden><span id="update-message"></span><button id="update-guide" class="text-button" type="button">Actualizar cuando sea seguro</button></div>
     <main id="app" tabindex="-1"></main>
-    <footer><div class="footer-meta"><span>Guía cifrada v0.6.3 · 3 oct 2026</span><span>El avance del recorrido se guarda en este dispositivo; Eleventa registra las operaciones.</span></div><div id="device-actions" class="device-actions" hidden><h2>Datos de este dispositivo</h2><div class="device-buttons"><button id="clear-route" class="danger-button" type="button">Borrar recorrido guardado</button><button id="reset-progress" class="danger-button" type="button" data-reset-progress>Borrar avance de lecciones</button><button id="forget-device" class="danger-button" type="button" hidden>Olvidar este dispositivo</button></div></div></footer>
+    <footer><div class="footer-meta"><span>Interfaz v0.6.4 · contenido cifrado v0.6.3</span><span data-offline-status>Comprobando si la guía está lista para usarse sin internet…</span><span>Esta guía orienta; Eleventa registra las operaciones.</span></div><div id="device-actions" class="device-actions" hidden><h2>Datos de este dispositivo</h2><div class="device-buttons"><button id="clear-route" class="danger-button" type="button">Borrar recorrido guardado</button><button id="reset-progress" class="danger-button" type="button" data-reset-progress>Borrar avance de lecciones</button><button id="forget-device" class="danger-button" type="button" hidden>Olvidar este dispositivo</button></div></div></footer>
   </div>
   <script src="./app.js"></script>
 </body>

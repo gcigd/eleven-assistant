@@ -1,7 +1,10 @@
-const CACHE = 'guia-caja-v0.6.3';
+const CACHE = 'guia-caja-v0.6.4';
 const ASSETS = ['./','./index.html','./styles.css','./content.enc.json','./app.js','./manifest.webmanifest','./icon.svg','./icon-192.png?v=0.2.13','./icon-512.png?v=0.2.13'];
 self.addEventListener('install', event => {
-  event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS.map(url => new Request(new URL(url, self.location.href), {cache:'reload'})))).then(() => self.skipWaiting()));
+  event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS.map(url => new Request(new URL(url, self.location.href), {cache:'reload'})))));
+});
+self.addEventListener('message', event => {
+  if (event.data?.type === 'SKIP_WAITING') self.skipWaiting();
 });
 self.addEventListener('activate', event => {
   event.waitUntil(Promise.all([caches.keys().then(keys => Promise.all(keys.filter(key => key.startsWith('guia-caja-') && key !== CACHE).map(key => caches.delete(key)))),self.clients.claim()]));
